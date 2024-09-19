@@ -2,6 +2,7 @@ import Link from "next/link";
 import RemoveBtn from "./RemoveBtn";
 import { HiPencilAlt } from "react-icons/hi";
 
+// Updated getTopics function to ensure consistent return value
 const getTopics = async () => {
   try {
     const res = await fetch("http://localhost:3000/api/topics", {
@@ -12,9 +13,13 @@ const getTopics = async () => {
       throw new Error("Failed to fetch topics");
     }
 
-    return res.json();
+    const data = await res.json();
+    // Ensure topics is always an array
+    return { topics: data.topics || [] };
   } catch (error) {
-    console.log("Error loading topics: ", error);
+    console.error("Error loading topics: ", error);
+    // Return an empty array if there's an error
+    return { topics: [] };
   }
 };
 
@@ -23,24 +28,30 @@ export default async function TopicsList() {
 
   return (
     <>
-      {topics.map((t) => (
-        <div
-          key={t._id}
-          className="p-4 border border-slate-300 my-3 flex justify-between gap-5 items-start"
-        >
-          <div>
-            <h2 className="font-bold text-2xl">{t.title}</h2>
-            <div>{t.description}</div>
-          </div>
+      {topics.length > 0 ? (
+        topics.map((t) => (
+          <div
+            key={t._id}
+            className="p-4 border border-slate-300 my-3 flex justify-between gap-5 items-start"
+          >
+            <div>
+              <h2 className="font-bold text-2xl">{t.title}</h2>
+              <div>{t.description}</div>
+            </div>
 
-          <div className="flex gap-2">
-            <RemoveBtn id={t._id} />
-            <Link href={`/editTopic/${t._id}`}>
-              <HiPencilAlt size={24} />
-            </Link>
+            <div className="flex gap-2">
+              <RemoveBtn id={t._id} />
+              <Link href={`/editTopic/${t._id}`}>
+                <a>
+                  <HiPencilAlt size={24} />
+                </a>
+              </Link>
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      ) : (
+        <p>No topics available.</p>
+      )}
     </>
   );
 }
